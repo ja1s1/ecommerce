@@ -1,0 +1,99 @@
+
+
+<project name="Ecommerce" default="deploy" basedir=".">
+
+    <!-- Configuration Tomcat -->
+    <property file="build.properties"/>
+
+    <!-- Répertoires -->
+    <property name="src.dir" value="src/java"/>
+    <property name="web.dir" value="web"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="dist.dir" value="dist"/>
+
+    <!-- Application -->
+    <property name="war.name" value="e_commerce.war"/>
+    <property name="deploy.dir"
+              location="${tomcat.home}/webapps"/>
+
+    <!-- Bibliothèques -->
+    <path id="project.classpath">
+
+        <!-- Pilote JDBC et autres dépendances -->
+        <fileset dir="${web.dir}/WEB-INF/lib">
+            <include name="**/*.jar"/>
+        </fileset>
+
+        <!-- API Servlet fournie par Tomcat -->
+        <fileset dir="${tomcat.home}/lib">
+            <include name="servlet-api.jar"/>
+        </fileset>
+
+    </path>
+
+    <!-- Initialisation -->
+    <target name="init">
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+    </target>
+
+    <!-- Compilation Java 21 -->
+    <target name="compile" depends="init">
+
+        <javac
+            srcdir="${src.dir}"
+            destdir="${classes.dir}"
+            release="21"
+            encoding="UTF-8"
+            includeantruntime="false">
+
+            <classpath refid="project.classpath"/>
+
+        </javac>
+
+    </target>
+
+    <!-- Création WAR -->
+    <target name="war" depends="compile">
+
+        <war destfile="${dist.dir}/${war.name}"
+             webxml="${web.dir}/WEB-INF/web.xml">
+
+            <!-- JSP, CSS, JavaScript et images -->
+            <fileset dir="${web.dir}">
+                <exclude name="WEB-INF/web.xml"/>
+                <exclude name="WEB-INF/lib/**"/>
+            </fileset>
+
+            <!-- Classes Java compilées -->
+            <classes dir="${classes.dir}"/>
+
+            <!-- Bibliothèques JDBC -->
+            <lib dir="${web.dir}/WEB-INF/lib"/>
+
+        </war>
+
+    </target>
+
+    <!-- Déploiement Tomcat -->
+    <target name="deploy" depends="war">
+
+        <copy
+            file="${dist.dir}/${war.name}"
+            todir="${deploy.dir}"
+            overwrite="true"/>
+
+        <echo message="WAR copie dans Tomcat : ${war.name}"/>
+
+    </target>
+
+    <!-- Nettoyage -->
+    <target name="clean">
+
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+
+    </target>
+
+</project>
